@@ -38,6 +38,10 @@ async def main():
     dp = Dispatcher(storage=MemoryStorage())
     
     # Routerlarni ro‘yxatdan o‘tkazish
+
+    dp.include_router(admin_router)
+    dp.include_router(admin_manage_router)
+    dp.include_router(channel_manage_router)
     dp.include_router(start_router)
     dp.include_router(video_router)
     dp.include_router(subscription_router)
@@ -49,9 +53,6 @@ async def main():
     # dp.include_router(upcoming_router)
     # dp.include_router(voice_router)
     # dp.include_router(reminder_router)
-    dp.include_router(admin_router)
-    dp.include_router(admin_manage_router)
-    dp.include_router(channel_manage_router)
     dp.include_router(ad_router)
     dp.include_router(landing_page_router)
     
@@ -62,7 +63,6 @@ async def main():
     # Kunlik eslatmalar scheduler’ini yoqish
     setup_scheduler()
     
-    # Logger sozlash
     logger = Logger()
     logger.info("Bot ishga tushdi")
     

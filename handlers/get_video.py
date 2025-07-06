@@ -42,7 +42,7 @@ async def start_command(message: Message,state: FSMContext):
             f"KinoBot Pro++ ga xush kelibsiz! Kino olish uchun quyidagi kanallarga obuna bo‘ling:\n{channel_links}",
             parse_mode="HTML"
         )
-        await bot.close()
+        # await bot.close()
         return
     
 
@@ -113,7 +113,7 @@ async def handle_movie_code(message: Message, state: FSMContext):
     )
 
     # print(file_id)
-    # await state.clear()
+    await state.clear()
     # await bot.close()
 
 
