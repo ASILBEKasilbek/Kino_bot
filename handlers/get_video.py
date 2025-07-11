@@ -104,17 +104,23 @@ async def handle_movie_code(message: Message, state: FSMContext):
         f"📝 <b>Tavsif:</b>\n{description}\n\n"
         # f"📊 <b>XP qo‘shildi:</b> {new_xp} XP"
     )
-
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📢 Barcha kodlar", url="https://t.me/MegaKinoUz")
+            ]
+        ]
+    )
     await bot.send_video(
-        message.chat.id,
-        file_id,
+        chat_id=message.chat.id,
+        video=file_id,
         caption=caption,
-        parse_mode="HTML"
+        parse_mode="HTML",
+        reply_markup=keyboard
     )
 
-    # print(file_id)
     await state.clear()
-    # await bot.close()
 
 
 

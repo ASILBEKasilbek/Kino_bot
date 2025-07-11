@@ -56,11 +56,8 @@ async def main():
     dp.include_router(ad_router)
     dp.include_router(landing_page_router)
     
-    # Ma’lumotlar bazasini ishga tushirish
     init_db()
-    # print("Ma’lumotlar bazasi ishga tushirildi")
-    await set_default_commands(bot) 
-    # Kunlik eslatmalar scheduler’ini yoqish
+    await set_default_commands(bot)
     setup_scheduler()
     
     logger = Logger()

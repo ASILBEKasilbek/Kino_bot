@@ -7,6 +7,7 @@ ADMIN_IDS = [5306481482,7646223205,5902572920]  # Admin foydalanuvchi ID’lari
 # CHANNEL_IDS = ['2052256946']
 #  # Majburiy obuna kanallari
 CHANNEL_IDS =[]
+CHANNEL_ID="https://t.me/KinoBotProPlus"  # Kanalga havola
 DB_PATH = "database/bot.db"  # Ma’lumotlar bazasi fayli
 REFERRAL_BONUS = 5  # Referal uchun bonus chegarasi
 PAYME_TOKEN = "YOUR_PAYME_TOKEN"  # Payme to‘lov tizimi tokeni
