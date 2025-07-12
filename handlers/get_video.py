@@ -2,7 +2,6 @@ from aiogram import Router, F
 from aiogram.types import Message,CallbackQuery
 from config import DB_PATH,BOT_TOKEN,CHANNEL_IDS
 from database.models import get_movie_by_code
-from utils.gamification import Gamification
 from utils.subscription_check import check_subscription_status
 from aiogram import Bot
 import sqlite3
@@ -42,33 +41,10 @@ async def start_command(message: Message,state: FSMContext):
             f"KinoBot Pro++ ga xush kelibsiz! Kino olish uchun quyidagi kanallarga obuna bo‘ling:\n{channel_links}",
             parse_mode="HTML"
         )
-        # await bot.close()
         return
-    
-
-    # keyboard = InlineKeyboardMarkup(
-        # inline_keyboard=[
-            # [
-                # InlineKeyboardButton(text="🎬 Kino kodlari", callback_data="get_video"),]
-            #     InlineKeyboardButton(text="🤖 AI tavsiyasi", callback_data="recommend")
-            # ],
-            # [
-            #     InlineKeyboardButton(text="💎 Premium obuna", callback_data="buy_subscription"),
-            #     InlineKeyboardButton(text="👥 Do‘st taklif qilish", callback_data="referral")
-            # ]
-        # ]
-    # )
-
-
-    # await message.answer(
-    #     f"🎬 <b>KinoBot Pro++</b> ga xush kelibsiz, <b>{username}</b>!\n\n"
-    #     f"Botimiz orqali eng so‘nggi kinolarni olish, AI tavsiyalarini olish, premium obunani sotib olish va do‘stlaringizni taklif qilish imkoniyatiga egasiz.\n\n"    
-    #     f"Kino kodini yuboring yoki quyidagi tugmalardan foydalaning:\n\n",
-    #     reply_markup=keyboard,
-    #     parse_mode="HTML"
-    # )
     await message.answer(f"🎬 <b>KinoBot</b> ga xush kelibsiz, <b>{username}</b>!\n\n iltimos kod yuboring",parse_mode="HTML")
     await state.set_state(MovieStates.waiting_for_movie_code)
+
 @video_router.message(MovieStates.waiting_for_movie_code)
 async def handle_movie_code(message: Message, state: FSMContext):
     movie_code = message.text.strip().upper()
@@ -93,16 +69,10 @@ async def handle_movie_code(message: Message, state: FSMContext):
               (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), message.from_user.id))
     conn.commit()
     conn.close()
-    
-    gamification = Gamification()
-    new_xp = gamification.add_xp(message.from_user.id, "watch_movie")
-    
-    # await message.reply(f"🎬 {title} ({year})\n📊 Yangi XP: {new_xp}")
     caption = (
         f"🎬 <b>{title}</b> ({year})\n"
         f"🎭 <b>Janr:</b> {genre}\n"
         f"📝 <b>Tavsif:</b>\n{description}\n\n"
-        # f"📊 <b>XP qo‘shildi:</b> {new_xp} XP"
     )
     from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
     keyboard = InlineKeyboardMarkup(

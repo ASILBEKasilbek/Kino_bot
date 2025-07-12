@@ -11,6 +11,7 @@ from handlers.referral import referral_router
 from handlers.playlist import playlist_router
 from handlers.advertising import advertising_router
 from handlers.upcoming import upcoming_router
+from handlers.support import support_router
 # from handlers.voice import voice_router
 from handlers.daily_reminder import reminder_router, setup_scheduler
 from handlers.admin_panel import admin_router
@@ -25,9 +26,8 @@ from aiogram import types
 async def set_default_commands(bot: Bot):
     commands = [
         types.BotCommand(command="start", description="⚪️ Botni ishga tushirish"),
-        # types.BotCommand(command="help", description="ℹ️ Yordam"),
-        # types.BotCommand(command="recommend", description="⭐ Kino tavsiyasi"),
-        # types.BotCommand(command="profile", description="👤 Profilingiz"),
+        types.BotCommand(command="get_video", description="🎬 Kino kodini yuborish"),
+        types.BotCommand(command="support", description="🆘 Texnik yordam"),
     ]
     
     await bot.set_my_commands(commands)
@@ -36,15 +36,16 @@ async def set_default_commands(bot: Bot):
 async def main():
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(storage=MemoryStorage())
-    
+    print("Bot ishga tushmoqda...")
     # Routerlarni ro‘yxatdan o‘tkazish
 
+    dp.include_router(support_router)
     dp.include_router(admin_router)
     dp.include_router(admin_manage_router)
     dp.include_router(channel_manage_router)
     dp.include_router(start_router)
     dp.include_router(video_router)
-    dp.include_router(subscription_router)
+    # dp.include_router(subscription_router)
     # dp.include_router(search_router)
     # dp.include_router(feedback_router)
     # dp.include_router(referral_router)
@@ -53,8 +54,8 @@ async def main():
     # dp.include_router(upcoming_router)
     # dp.include_router(voice_router)
     # dp.include_router(reminder_router)
-    dp.include_router(ad_router)
-    dp.include_router(landing_page_router)
+    # dp.include_router(ad_router)
+    # dp.include_router(landing_page_router)
     
     init_db()
     await set_default_commands(bot)
@@ -62,6 +63,7 @@ async def main():
     
     logger = Logger()
     logger.info("Bot ishga tushdi")
+    print("Bot ishga tushdi")
     
     try:
         await dp.start_polling(bot)
