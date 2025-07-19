@@ -59,7 +59,7 @@ async def main():
     
     init_db()
     await set_default_commands(bot)
-    # setup_scheduler()
+    setup_scheduler()
     
     logger = Logger()
     logger.info("Bot ishga tushdi")
