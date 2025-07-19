@@ -2,9 +2,6 @@
 import sqlite3
 from config import DB_PATH
 
-# database/models.py faylida
-from config import DB_PATH
-import sqlite3
 
 def get_movie_by_code(code: str):
     conn = sqlite3.connect(DB_PATH)
@@ -34,3 +31,4 @@ def search_movies(query: str):
     movies = c.fetchall()
     conn.close()
     return movies
+

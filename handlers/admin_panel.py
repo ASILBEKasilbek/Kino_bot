@@ -21,6 +21,7 @@ class AddMovieForm(StatesGroup):
     description = State()
     is_premium = State()
     video = State()
+    delete = State()
 
 class BlockUserForm(StatesGroup):
     user_id = State()
@@ -367,6 +368,37 @@ async def list_movies_callback(callback: CallbackQuery):
     except Exception as e:
         logging.warning(f"Failed to delete message: {e}")
 
+import sqlite3
+from config import DB_PATH
+from aiogram import types
+from aiogram.fsm.context import FSMContext
+
+@admin_router.message(AddMovieForm.delete)
+async def process_delete_code(message: types.Message, state: FSMContext):
+    movie_code = message.text.strip()
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # Avval kino mavjudligini tekshiramiz
+        cursor.execute("SELECT * FROM movies WHERE movie_code = ?", (movie_code,))
+        movie = cursor.fetchone()
+
+        if not movie:
+            await message.reply("❌ Bunday kodga ega kino topilmadi.")
+        else:
+            cursor.execute("DELETE FROM movies WHERE movie_code = ?", (movie_code,))
+            conn.commit()
+            await message.reply(f"✅ Kino muvaffaqiyatli o‘chirildi! 🎬\n🎟 Kod: {movie_code}")
+
+    except Exception as e:
+        logging.error(f"Error deleting movie: {e}")
+        await message.reply("⚠️ O‘chirishda xatolik yuz berdi.")
+    finally:
+        conn.close()
+        await state.clear()
+
 @admin_router.callback_query(F.data == "delete_movie")
 async def delete_movie_callback(callback: CallbackQuery, state: FSMContext):
     logging.info(f"delete_movie callback triggered by user_id={callback.from_user.id}, callback_data={callback.data}")
@@ -374,7 +406,7 @@ async def delete_movie_callback(callback: CallbackQuery, state: FSMContext):
     if callback.from_user.id not in ADMIN_IDS:
         await callback.message.reply("🚫 Faqat adminlar kinolarni o‘chirishi mumkin!")
         return
-    await state.set_state(AddMovieForm.code)
+    await state.set_state(AddMovieForm.delete)
     await callback.message.reply("🗑 O‘chirish uchun kino kodini kiriting:")
     try:
         await callback.message.delete()
@@ -459,7 +491,6 @@ async def back_to_admin_callback(callback: CallbackQuery):
     except Exception as e:
         logging.warning(f"Failed to delete message: {e}")
 
-# Optimized advertisement sending handler
 @admin_router.message(Command("send_ad"))
 async def admin_send_ad_command(message: Message):
     logging.info(f"send_ad command triggered by user_id={message.from_user.id}")
