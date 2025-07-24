@@ -34,8 +34,11 @@ def search_movies(query: str):
 
 def get_top_movies(limit: int = 5):
     conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row  # bu natijani dict sifatida olishga yordam beradi
     c = conn.cursor()
     c.execute("SELECT * FROM movies ORDER BY view_count DESC LIMIT ?", (limit,))
-    top_movies = c.fetchall()
+    rows = c.fetchall()
     conn.close()
-    return top_movies
+
+    # Har bir row ni dict ga aylantiramiz
+    return [dict(row) for row in rows]
