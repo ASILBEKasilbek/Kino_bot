@@ -115,7 +115,8 @@ async def top_5_handler(callback: CallbackQuery):
                 callback_data=f"movie_{movie['id']}"  # callback_data orqali kino ID yuboramiz
             )
         ])
-
+    print(buttons)
+    print(123)
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
     await callback.message.answer("🎬 Top 5 kinolar:", reply_markup=keyboard)
