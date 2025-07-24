@@ -9,8 +9,9 @@ from datetime import datetime
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import Command
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-    
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from database.models import get_top_movies
+
 class MovieStates(StatesGroup):
     waiting_for_movie_code = State()
 video_router = Router()
@@ -100,13 +101,9 @@ async def handle_movie_code(message: Message, state: FSMContext):
 
 
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-from database.models import get_top_movies
-
 @video_router.callback_query(lambda c: c.data == "top_5_kinolar")
 async def top_5_handler(callback: CallbackQuery):
     top_movies = get_top_movies(5)
-    print(top_movies)  
     buttons = []
     for movie in top_movies:
         buttons.append([
@@ -115,8 +112,6 @@ async def top_5_handler(callback: CallbackQuery):
                 callback_data=f"movie_{movie['id']}"  # callback_data orqali kino ID yuboramiz
             )
         ])
-    print(buttons)
-    print(123)
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
     await callback.message.answer("🎬 Top 5 kinolar:", reply_markup=keyboard)
@@ -131,7 +126,7 @@ async def send_selected_movie(callback: CallbackQuery):
     if movie:
         await callback.message.answer_video(
             video=movie['file_id'],
-            caption=f"{movie['title']} ({movie['year']})\nJanr: {movie['genre']}"
+            caption=f"{movie['title']} ({movie['year']})\nJanr: {movie['genre']} \nTavsif: {movie['description']}",
         )
     else:
         await callback.message.answer("Kechirasiz, kino topilmadi.")
