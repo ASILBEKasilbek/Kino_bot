@@ -32,3 +32,10 @@ def search_movies(query: str):
     conn.close()
     return movies
 
+def get_top_movies(limit: int = 1):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT * FROM movies ORDER BY view_count DESC LIMIT ?", (limit,))
+    top_movies = c.fetchall()
+    conn.close()
+    return top_movies

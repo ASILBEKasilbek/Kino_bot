@@ -15,7 +15,6 @@ class ManageAdminForm(StatesGroup):
 @admin_manage_router.message(Command("manage_admins"))
 async def manage_admins_command(message: Message):
     if message.from_user.id not in ADMIN_IDS:
-        await message.reply(f"{message.from_user.id}")
         await message.reply("🚫 Bu buyruq faqat super adminlar uchun!")
         return
     

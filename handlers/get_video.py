@@ -9,6 +9,8 @@ from datetime import datetime
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import Command
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+    
 class MovieStates(StatesGroup):
     waiting_for_movie_code = State()
 video_router = Router()
@@ -42,7 +44,12 @@ async def start_command(message: Message,state: FSMContext):
             parse_mode="HTML"
         )
         return
-    await message.answer(f"🎬 <b>KinoBot</b> ga xush kelibsiz, <b>{username}</b>!\n\n iltimos kod yuboring",parse_mode="HTML")
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="Top 5 kinolar", callback_data="top_5_kinolar")],
+            [InlineKeyboardButton(text="📢 Barcha kodlar", url="https://t.me/MegaKinoUz")]
+            ]
+    ) 
+    await message.answer(f"🎬 <b>KinoBot</b> ga xush kelibsiz, <b>{username}</b>!\n\n iltimos kod yuboring",parse_mode="HTML",reply_markup=keyboard)
     await state.set_state(MovieStates.waiting_for_movie_code)
 
 @video_router.message(MovieStates.waiting_for_movie_code)
@@ -74,7 +81,6 @@ async def handle_movie_code(message: Message, state: FSMContext):
         f"🎭 <b>Janr:</b> {genre}\n"
         f"📝 <b>Tavsif:</b>\n{description}\n\n"
     )
-    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -94,3 +100,39 @@ async def handle_movie_code(message: Message, state: FSMContext):
 
 
 
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from database.models import get_top_movies
+
+@video_router.callback_query(lambda c: c.data == "top_5_kinolar")
+async def top_5_handler(callback: CallbackQuery):
+    top_movies = get_top_movies(5)
+    print(top_movies)  
+    buttons = []
+    for movie in top_movies:
+        buttons.append([
+            InlineKeyboardButton(
+                text=movie['title'],  # tugmada kino nomi
+                callback_data=f"movie_{movie['id']}"  # callback_data orqali kino ID yuboramiz
+            )
+        ])
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    await callback.message.answer("🎬 Top 5 kinolar:", reply_markup=keyboard)
+    await callback.answer()
+
+@video_router.callback_query(lambda c: c.data.startswith("movie_"))
+async def send_selected_movie(callback: CallbackQuery):
+    movie_id = int(callback.data.split("_")[1])  # movie_3 -> 3
+    top_movies = get_top_movies(100)  # Yoki boshqa funksiya bilan ID bo‘yicha kino ol
+    movie = next((m for m in top_movies if m["id"] == movie_id), None)
+
+    if movie:
+        await callback.message.answer_video(
+            video=movie['file_id'],
+            caption=f"{movie['title']} ({movie['year']})\nJanr: {movie['genre']}"
+        )
+    else:
+        await callback.message.answer("Kechirasiz, kino topilmadi.")
+
+    await callback.answer()
