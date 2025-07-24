@@ -1,3 +1,4 @@
+import random
 from aiogram import Router, Bot
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -22,7 +23,8 @@ async def send_daily_reminder():
         user_id = user[0]
         recommendations = get_movie_recommendations(user_id)
         if recommendations:
-            movie = recommendations[0]
+            movie = random.choice(recommendations)
+
             movie_id, title, genre, year, description = movie
             try:
                 await bot.send_message(

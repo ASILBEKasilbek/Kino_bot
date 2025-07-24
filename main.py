@@ -26,7 +26,7 @@ from aiogram import types
 async def set_default_commands(bot: Bot):
     commands = [
         types.BotCommand(command="start", description="⚪️ Botni ishga tushirish"),
-        types.BotCommand(command="get_video", description="🎬 Kino kodini yuborish"),
+        #types.BotCommand(command="get_video", description="🎬 Kino kodini yuborish"),
         types.BotCommand(command="support", description="🆘 Texnik yordam"),
     ]
     
@@ -59,7 +59,7 @@ async def main():
     
     init_db()
     await set_default_commands(bot)
-    # setup_scheduler()
+    setup_scheduler()
     
     logger = Logger()
     logger.info("Bot ishga tushdi")
