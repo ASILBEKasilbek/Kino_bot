@@ -176,7 +176,7 @@ async def inline_query_handler(inline_query: InlineQuery):
             btn = InlineKeyboardMarkup().add(
                 InlineKeyboardButton(
                     text="🎬 Tomosha qilish",
-                    url=f"https://t.me/{a1}?start={movie_code}"
+                    url=f"https://t.me/{a}?start={movie_code}"
                 )
             )
 
