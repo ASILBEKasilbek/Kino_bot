@@ -46,7 +46,8 @@ async def start_command(message: Message,state: FSMContext):
         )
         return
     keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="Top 5 kinolar", callback_data="top_5_kinolar")],
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔎 Qidiruv",switch_inline_query_current_chat=""),InlineKeyboardButton(text="Top 5 kinolar", callback_data="top_5_kinolar")],
             [InlineKeyboardButton(text="📢 Barcha kodlar", url="https://t.me/MegaKinoUz")]
             ]
     ) 
@@ -132,3 +133,83 @@ async def send_selected_movie(callback: CallbackQuery):
         await callback.message.answer("Kechirasiz, kino topilmadi.")
 
     await callback.answer()
+
+
+from aiogram import types
+from aiogram.types import (
+    InlineQuery, InlineQueryResultArticle, InputTextMessageContent,
+    InlineKeyboardMarkup, InlineKeyboardButton
+)
+import uuid
+import sqlite3
+
+@video_router.inline_query()
+async def inline_query_handler(inline_query: InlineQuery):
+    query = inline_query.query.strip()
+    results = []
+
+    conn = sqlite3.connect('database/bot.db')
+    c = conn.cursor()
+
+    if query:
+        c.execute("SELECT * FROM movies WHERE title LIKE ? OR description LIKE ? LIMIT 20", (f"%{query}%", f"%{query}%"))
+        movies = c.fetchall()
+    else:
+        c.execute("SELECT * FROM movies ORDER BY RANDOM() LIMIT 20")
+        movies = c.fetchall()
+
+    if movies:
+        for movie in movies:
+            movie_id = movie[0]
+            file_id = movie[1]
+            movie_code = movie[2]
+            title = movie[3]
+            genre = movie[4]
+            year = movie[5]
+            description = movie[6]
+            is_premium = movie[7]
+            view_count = movie[8]
+            a ="MegaKino_Uz_Bot"
+            a1 = "Healthy_Helper_robot"
+
+            # Inline button - Tomosha qilish
+            btn = InlineKeyboardMarkup().add(
+                InlineKeyboardButton(
+                    text="🎬 Tomosha qilish",
+                    url=f"https://t.me/{a1}?start={movie_code}"
+                )
+            )
+
+            results.append(
+                InlineQueryResultArticle(
+                    id=str(uuid.uuid4()),
+                    title=f"{title} ({year})",
+                    description=f"{genre} • {year}",
+                    input_message_content=InputTextMessageContent(
+                        message_text=(
+                            f"*🎬 {title}*\n"
+                            f"📅 *Yil:* {year}\n"
+                            f"🎭 *Janr:* {genre}\n"
+                            f"📝 *Tavsif:* {description}\n"
+                            f"👁 *Ko'rilgan:* {view_count} marta\n\n"
+                            f"➡ Tomosha qilish uchun pastdagi tugmani bosing 👇"
+                        ),
+                        parse_mode="Markdown"
+                    ),
+                    reply_markup=btn,
+                    thumb_url="https://i.imgur.com/lgx2V81.jpeg"  # Rasmlarni bazaga qo‘shmasang default qoladi
+                )
+            )
+    else:
+        results.append(
+            InlineQueryResultArticle(
+                id=str(uuid.uuid4()),
+                title="Hech narsa topilmadi",
+                input_message_content=InputTextMessageContent(
+                    message_text="Kechirasiz, siz so‘ragan film topilmadi."
+                )
+            )
+        )
+
+    await inline_query.answer(results, cache_time=1)
+    conn.close()
