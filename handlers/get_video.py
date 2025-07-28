@@ -202,7 +202,7 @@ async def inline_query_handler(inline_query: InlineQuery):
     if query:
         c.execute("SELECT * FROM movies WHERE title LIKE ? OR description LIKE ? LIMIT 20", (f"%{query}%", f"%{query}%"))
     else:
-        c.execute("SELECT * FROM movies ORDER BY RANDOM() LIMIT 20")
+        c.execute("SELECT * FROM movies ORDER BY RANDOM() LIMIT 2")
     
     movies = c.fetchall()
 
