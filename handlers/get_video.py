@@ -12,6 +12,16 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from database.models import get_top_movies
 
+import sqlite3
+import uuid
+from aiogram import types
+from aiogram.types import (
+    InlineQuery,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton
+)
 class MovieStates(StatesGroup):
     waiting_for_movie_code = State()
 video_router = Router()
@@ -75,7 +85,7 @@ async def start_command(message: Message, state: FSMContext):
             )
             keyboard = InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [InlineKeyboardButton(text="📢 Barcha kodlar", url="https://t.me/MegaKinoUz")]
+                    [InlineKeyboardButton(text="📢 Barcha kinolar", callback_data="barcha_kinolar")],
                 ]
             )
             await bot.send_video(
@@ -95,7 +105,7 @@ async def start_command(message: Message, state: FSMContext):
         inline_keyboard=[
             [InlineKeyboardButton(text="🔎 Qidiruv", switch_inline_query_current_chat=""),
              InlineKeyboardButton(text="Top 5 kinolar", callback_data="top_5_kinolar")],
-            [InlineKeyboardButton(text="📢 Barcha kodlar", url="https://t.me/MegaKinoUz")]
+            [InlineKeyboardButton(text="📢 Barcha kinolar", callback_data="barcha_kinolar")]
         ]
     )
     await message.answer(f"🎬 <b>KinoBot</b> ga xush kelibsiz, <b>{username}</b>!\n\nIltimos, kino kodini yuboring", parse_mode="HTML", reply_markup=keyboard)
@@ -179,16 +189,6 @@ async def send_selected_movie(callback: CallbackQuery):
 
     await callback.answer()
 
-import sqlite3
-import uuid
-from aiogram import types
-from aiogram.types import (
-    InlineQuery,
-    InlineQueryResultArticle,
-    InputTextMessageContent,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton
-)
 
 @video_router.inline_query()
 async def inline_query_handler(inline_query: InlineQuery):
@@ -202,7 +202,7 @@ async def inline_query_handler(inline_query: InlineQuery):
     if query:
         c.execute("SELECT * FROM movies WHERE title LIKE ? OR description LIKE ? LIMIT 20", (f"%{query}%", f"%{query}%"))
     else:
-        c.execute("SELECT * FROM movies ORDER BY RANDOM() LIMIT 2")
+        c.execute("SELECT * FROM movies ORDER BY RANDOM() LIMIT 20")
     
     movies = c.fetchall()
 
@@ -262,3 +262,26 @@ async def inline_query_handler(inline_query: InlineQuery):
 
     await inline_query.answer(results, cache_time=1)
     conn.close()
+
+@video_router.callback_query(lambda c: c.data == "barcha_kinolar")
+async def show_all_movies(callback_query: CallbackQuery):
+    conn = sqlite3.connect('database/bot.db')
+    c = conn.cursor()
+    c.execute("SELECT title, movie_code FROM movies")
+    movies = c.fetchall()
+    conn.close()
+
+    if not movies:
+        await callback_query.message.answer("📭 Bazada hech qanday kino yo'q.")
+        return
+
+    buttons = []
+    for title, code in movies:
+        buttons.append(
+            [InlineKeyboardButton(text=title, url=f"https://t.me/MegaKino_Uz_Bot?start={code}")]
+        )
+
+    markup = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    await callback_query.message.answer("🎬 Barcha kinolar:", reply_markup=markup)
+    await callback_query.answer()  # ✅ Callback tugmasiga javob berishni unutmang
