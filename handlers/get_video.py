@@ -143,7 +143,7 @@ async def handle_movie_code(message: Message, state: FSMContext):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="📢 Barcha kodlar", url="https://t.me/MegaKinoUz")
+                InlineKeyboardButton(text="📢 Barcha kodlar",callback_data="barcha_kinolar")
             ]
         ]
     )

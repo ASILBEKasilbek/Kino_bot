@@ -11,6 +11,11 @@ import sqlite3
 import logging
 import asyncio
 
+import sqlite3
+from config import DB_PATH
+from aiogram import types
+from aiogram.fsm.context import FSMContext
+
 admin_router = Router()
 
 class AddMovieForm(StatesGroup):
@@ -29,6 +34,9 @@ class BlockUserForm(StatesGroup):
 class BroadcastForm(StatesGroup):
     content = State()
     schedule_time = State()
+
+class AdStates(StatesGroup):
+    waiting_for_ad = State()
 
 @admin_router.message(Command("admin"))
 async def admin_panel_command(message: Message):
@@ -368,11 +376,6 @@ async def list_movies_callback(callback: CallbackQuery):
     except Exception as e:
         logging.warning(f"Failed to delete message: {e}")
 
-import sqlite3
-from config import DB_PATH
-from aiogram import types
-from aiogram.fsm.context import FSMContext
-
 @admin_router.message(AddMovieForm.delete)
 async def process_delete_code(message: types.Message, state: FSMContext):
     movie_code = message.text.strip()
@@ -491,57 +494,56 @@ async def back_to_admin_callback(callback: CallbackQuery):
     except Exception as e:
         logging.warning(f"Failed to delete message: {e}")
 
-@admin_router.message(Command("send_ad"))
-async def admin_send_ad_command(message: Message):
-    logging.info(f"send_ad command triggered by user_id={message.from_user.id}")
-    
+@admin_router.callback_query(lambda c: c.data == "send_ad")
+async def ask_for_ad(callback: CallbackQuery, state: FSMContext):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("🚫 Faqat adminlar uchun!", show_alert=True)
+        return
+
+    await callback.message.answer("📣 Reklama matnini yoki rasm bilan matnni yuboring.")
+    await state.set_state(AdStates.waiting_for_ad)
+
+@admin_router.message(AdStates.waiting_for_ad)
+async def send_ad_to_users(message: Message, state: FSMContext):
     if message.from_user.id not in ADMIN_IDS:
-        await message.reply("🚫 Bu buyruq faqat adminlar uchun!")
+        await message.answer("🚫 Sizda ruxsat yo'q.")
         return
 
-    args = message.text.split(maxsplit=1)
-    if len(args) < 2:
-        await message.reply("⚠️ Iltimos, reklama matnini kiriting!\nMisol: /send_ad Yangi kino chiqdi!")
-        return
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT user_id FROM users WHERE is_blocked = 0")
+    users = c.fetchall()
+    conn.close()
 
-    ad_content = args[1]
-    
-    async def send_broadcast():
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT user_id FROM users WHERE is_blocked = 0")
-        users = c.fetchall()
-        conn.close()
-        
-        success_count = 0
-        failed_count = 0
-        batch_size = 30  # Telegram API rate limits
-        delay = 1  # Delay between batches in seconds
-        
-        for i in range(0, len(users), batch_size):
-            batch = users[i:i + batch_size]
-            for (user_id,) in batch:
-                try:
-                    await message.bot.send_message(user_id, f"📢 Reklama: {ad_content}")
-                    success_count += 1
-                except Exception as e:
-                    logging.warning(f"⚠️ Xabar yuborilmadi: user_id={user_id}, error={e}")
-                    failed_count += 1
-                    continue
-            await asyncio.sleep(delay)
-        
-        return success_count, failed_count
+    success_count = 0
+    failed_count = 0
+    batch_size = 30
+    delay = 1
 
-    success_count, failed_count = await send_broadcast()
-    
+    for i in range(0, len(users), batch_size):
+        batch = users[i:i + batch_size]
+        for (user_id,) in batch:
+            try:
+                if message.photo:
+                    await message.bot.send_photo(user_id, photo=message.photo[-1].file_id, caption=message.caption or "")
+                else:
+                    await message.bot.send_message(user_id, text=message.text)
+                success_count += 1
+            except Exception as e:
+                logging.warning(f"❌ Failed to send ad to user {user_id}: {e}")
+                failed_count += 1
+        await asyncio.sleep(delay)
+
     gamification = Gamification()
     new_xp = gamification.add_xp(message.from_user.id, "send_ad")
-    
-    await message.reply(
-        f"✅ Reklama {success_count} ta foydalanuvchiga yuborildi!\n"
+
+    await message.answer(
+        f"✅ {success_count} ta foydalanuvchiga yuborildi!\n"
         f"❌ Yuborilmadi: {failed_count}\n"
         f"📊 Yangi XP: {new_xp}"
     )
+
+    await state.clear()
 
 @admin_router.callback_query(F.data == "manage_admins")
 async def manage_admins_callback(callback: CallbackQuery):

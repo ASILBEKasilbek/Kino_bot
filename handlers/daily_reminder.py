@@ -7,7 +7,7 @@ from config import DB_PATH, BOT_TOKEN
 from core.ai_recommendation import get_movie_recommendations
 import sqlite3
 from datetime import datetime
-
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 reminder_router = Router()
 scheduler = AsyncIOScheduler()
 
@@ -24,12 +24,29 @@ async def send_daily_reminder():
         recommendations = get_movie_recommendations(user_id)
         if recommendations:
             movie = random.choice(recommendations)
-
+            file_id = movie[1]
             movie_id, title, genre, year, description = movie
             try:
-                await bot.send_message(
-                    user_id,
-                    f"📽 Bugungi kino tavsiyasi: {title} ({year})\n🎭 Janr: {genre}\n📜 Tavsif: {description}"
+
+                keyboard = InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(text="📢 Barcha kodlar", callback_data="barcha_kinolar")
+                        ]
+                    ]
+                )
+                caption = (
+                    f"📽 Bugungi kino tavsiyasi: \n"
+                    f"🎬 <b>{title}</b> ({year})\n"
+                    f"🎭 <b>Janr:</b> {genre}\n"
+                    f"📝 <b>Tavsif:</b>\n{description}\n\n"
+                )
+                await bot.send_video(
+                    chat_id=user_id,
+                    video=file_id,
+                    caption=caption,
+                    parse_mode="HTML",
+                    reply_markup=keyboard
                 )
             except:
                 continue
