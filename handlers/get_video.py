@@ -246,7 +246,7 @@ async def inline_query_handler(inline_query: InlineQuery):
                         parse_mode="Markdown"
                     ),
                     reply_markup=btn,
-                    thumb_url="https://i.postimg.cc/NYbcSgJ5/temp-Image-KSvy-Ph.avif" 
+                    thumb_url="https://ibb.co/ymrn8HVG",
                 )
             )
     else:
