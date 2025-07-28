@@ -24,7 +24,7 @@ async def process_get_video_callback(callback: CallbackQuery, state: FSMContext)
     await callback.answer()
 
 @video_router.message(Command("start"))
-async def start_command(message: Message,state: FSMContext):
+async def start_command(message: Message, state: FSMContext):
     bot = Bot(token=BOT_TOKEN)
     user_id = message.from_user.id
     username = message.from_user.username or "No username"
@@ -45,13 +45,60 @@ async def start_command(message: Message,state: FSMContext):
             parse_mode="HTML"
         )
         return
+    
+    # 🔍 Deep link orqali yuborilgan movie code ni tekshir
+    args = message.text.split(maxsplit=1)
+    if len(args) > 1:
+        movie_code = args[1].strip().upper()
+        movie = get_movie_by_code(movie_code)
+
+        if movie:
+            movie_id, file_id, title, genre, year, description, is_premium = movie
+
+            if is_premium and not is_subscribed:
+                await message.reply("💎 Bu premium kino! Iltimos, obuna bo‘ling: /buy_subscription")
+                return
+
+            # Statistikani yangilash
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("UPDATE movies SET view_count = view_count + 1 WHERE id = ?", (movie_id,))
+            c.execute("UPDATE users SET last_activity = ? WHERE user_id = ?",
+                      (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), user_id))
+            conn.commit()
+            conn.close()
+
+            caption = (
+                f"🎬 <b>{title}</b> ({year})\n"
+                f"🎭 <b>Janr:</b> {genre}\n"
+                f"📝 <b>Tavsif:</b>\n{description}\n\n"
+            )
+            keyboard = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(text="📢 Barcha kodlar", url="https://t.me/MegaKinoUz")]
+                ]
+            )
+            await bot.send_video(
+                chat_id=message.chat.id,
+                video=file_id,
+                caption=caption,
+                parse_mode="HTML",
+                reply_markup=keyboard
+            )
+            return
+        else:
+            await message.reply("⚠️ Kino kodi noto‘g‘ri yoki mavjud emas.")
+            return
+
+    # Agar startda kod bo'lmasa - oddiy menyu chiqar
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="🔎 Qidiruv",switch_inline_query_current_chat=""),InlineKeyboardButton(text="Top 5 kinolar", callback_data="top_5_kinolar")],
+            [InlineKeyboardButton(text="🔎 Qidiruv", switch_inline_query_current_chat=""),
+             InlineKeyboardButton(text="Top 5 kinolar", callback_data="top_5_kinolar")],
             [InlineKeyboardButton(text="📢 Barcha kodlar", url="https://t.me/MegaKinoUz")]
-            ]
-    ) 
-    await message.answer(f"🎬 <b>KinoBot</b> ga xush kelibsiz, <b>{username}</b>!\n\n iltimos kod yuboring",parse_mode="HTML",reply_markup=keyboard)
+        ]
+    )
+    await message.answer(f"🎬 <b>KinoBot</b> ga xush kelibsiz, <b>{username}</b>!\n\nIltimos, kino kodini yuboring", parse_mode="HTML", reply_markup=keyboard)
     await state.set_state(MovieStates.waiting_for_movie_code)
 
 @video_router.message(MovieStates.waiting_for_movie_code)
@@ -100,8 +147,6 @@ async def handle_movie_code(message: Message, state: FSMContext):
 
     await state.clear()
 
-
-
 @video_router.callback_query(lambda c: c.data == "top_5_kinolar")
 async def top_5_handler(callback: CallbackQuery):
     top_movies = get_top_movies(5)
@@ -134,85 +179,6 @@ async def send_selected_movie(callback: CallbackQuery):
 
     await callback.answer()
 
-
-from aiogram import types
-from aiogram.types import (
-    InlineQuery, InlineQueryResultArticle, InputTextMessageContent,
-    InlineKeyboardMarkup, InlineKeyboardButton
-)
-import uuid
-import sqlite3
-
-# @video_router.inline_query()
-# async def inline_query_handler(inline_query: InlineQuery):
-#     query = inline_query.query.strip()
-#     results = []
-
-#     conn = sqlite3.connect('database/bot.db')
-#     c = conn.cursor()
-
-#     if query:
-#         c.execute("SELECT * FROM movies WHERE title LIKE ? OR description LIKE ? LIMIT 20", (f"%{query}%", f"%{query}%"))
-#         movies = c.fetchall()
-#     else:
-#         c.execute("SELECT * FROM movies ORDER BY RANDOM() LIMIT 20")
-#         movies = c.fetchall()
-
-#     if movies:
-#         for movie in movies:
-#             movie_id = movie[0]
-#             file_id = movie[1]
-#             movie_code = movie[2]
-#             title = movie[3]
-#             genre = movie[4]
-#             year = movie[5]
-#             description = movie[6]
-#             is_premium = movie[7]
-#             view_count = movie[8]
-#             a ="MegaKino_Uz_Bot"
-#             a1 = "Healthy_Helper_robot"
-
-#             # Inline button - Tomosha qilish
-#             btn = InlineKeyboardMarkup().add(
-#                 InlineKeyboardButton(
-#                     text="🎬 Tomosha qilish",
-#                     url=f"https://t.me/{a1}?start={movie_code}"
-#                 )
-#             )
-
-#             results.append(
-#                 InlineQueryResultArticle(
-#                     id=str(uuid.uuid4()),
-#                     title=f"{title} ({year})",
-#                     description=f"{genre} • {year}",
-#                     input_message_content=InputTextMessageContent(
-#                         message_text=(
-#                             f"*🎬 {title}*\n"
-#                             f"📅 *Yil:* {year}\n"
-#                             f"🎭 *Janr:* {genre}\n"
-#                             f"📝 *Tavsif:* {description}\n"
-#                             f"👁 *Ko'rilgan:* {view_count} marta\n\n"
-#                             f"➡ Tomosha qilish uchun pastdagi tugmani bosing 👇"
-#                         ),
-#                         parse_mode="Markdown"
-#                     ),
-#                     reply_markup=btn,
-#                     thumb_url="https://i.imgur.com/lgx2V81.jpeg"  # Rasmlarni bazaga qo‘shmasang default qoladi
-#                 )
-#             )
-#     else:
-#         results.append(
-#             InlineQueryResultArticle(
-#                 id=str(uuid.uuid4()),
-#                 title="Hech narsa topilmadi",
-#                 input_message_content=InputTextMessageContent(
-#                     message_text="Kechirasiz, siz so‘ragan film topilmadi."
-#                 )
-#             )
-#         )
-
-#     await inline_query.answer(results, cache_time=1)
-#     conn.close()
 import sqlite3
 import uuid
 from aiogram import types
@@ -226,24 +192,19 @@ from aiogram.types import (
 
 @video_router.inline_query()
 async def inline_query_handler(inline_query: InlineQuery):
-    print("✅ Inline query handler chaqirildi")
     
     query = inline_query.query.strip()
-    print(f"🔍 Qidiruv so‘rovi: '{query}'")
 
     results = []
     conn = sqlite3.connect('database/bot.db')
     c = conn.cursor()
 
     if query:
-        print("📥 So‘rov bor, qidirilmoqda...")
         c.execute("SELECT * FROM movies WHERE title LIKE ? OR description LIKE ? LIMIT 20", (f"%{query}%", f"%{query}%"))
     else:
-        print("📥 So‘rov yo‘q, random filmlar olinmoqda...")
         c.execute("SELECT * FROM movies ORDER BY RANDOM() LIMIT 20")
     
     movies = c.fetchall()
-    print(f"🔎 Topilgan filmlar soni: {len(movies)}")
 
     if movies:
         for movie in movies:
@@ -256,21 +217,18 @@ async def inline_query_handler(inline_query: InlineQuery):
             description = movie[6]
             is_premium = movie[7]
             view_count = movie[8]
-
-            print(f"🎞 Film: {title} ({year})")
-
-            # Inline tugma
+            a='MegaKino_Uz_Bot'
+            a1 = "Healthy_Helper_robot"
             btn = InlineKeyboardMarkup(
                 inline_keyboard=[
                     [
                         InlineKeyboardButton(
                             text="🎬 Tomosha qilish",
-                            url=f"https://t.me/Healthy_Helper_robot?start={movie_code}"
+                            url=f"https://t.me/{a}?start={movie_code}"
                         )
                     ]
                 ]
             )
-
             results.append(
                 InlineQueryResultArticle(
                     id=str(uuid.uuid4()),
@@ -288,11 +246,10 @@ async def inline_query_handler(inline_query: InlineQuery):
                         parse_mode="Markdown"
                     ),
                     reply_markup=btn,
-                    thumb_url="https://i.postimg.cc/NYbcSgJ5/temp-Image-KSvy-Ph.avif"  # Ras
+                    thumb_url="https://i.postimg.cc/NYbcSgJ5/temp-Image-KSvy-Ph.avif" 
                 )
             )
     else:
-        print("❌ Hech qanday film topilmadi!")
         results.append(
             InlineQueryResultArticle(
                 id=str(uuid.uuid4()),
@@ -304,6 +261,4 @@ async def inline_query_handler(inline_query: InlineQuery):
         )
 
     await inline_query.answer(results, cache_time=1)
-    print("📤 Javob yuborildi!")
     conn.close()
-    print("🔒 Bazaga ulanish yopildi.")
