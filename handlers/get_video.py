@@ -108,7 +108,13 @@ async def start_command(message: Message, state: FSMContext):
             [InlineKeyboardButton(text="📢 Barcha kinolar", callback_data="barcha_kinolar")]
         ]
     )
-    await message.answer(f"🎬 <b>KinoBot</b> ga xush kelibsiz, <b>{username}</b>!\n\nIltimos, kino kodini yuboring", parse_mode="HTML", reply_markup=keyboard)
+    await message.answer(
+        f"🎬 <b>MegaKinoBot</b> ga xush kelibsiz, <b>{username}</b>!\n\n"
+        "📽 Bu bot orqali filmlar olamiga sho‘ng‘ing — qidiruv, tavsiyalar, to‘liq ro‘yxatlar va yana ko‘plab imkoniyatlar sizni kutmoqda!\n\n"
+        "🧾 <i>Iltimos, kino kodini yuboring yoki quyidagi menyudan tanlang:</i>",
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
     await state.set_state(MovieStates.waiting_for_movie_code)
 
 @video_router.message(MovieStates.waiting_for_movie_code)
