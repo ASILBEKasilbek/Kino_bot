@@ -93,7 +93,8 @@ async def start_command(message: Message, state: FSMContext):
                 video=file_id,
                 caption=caption,
                 parse_mode="HTML",
-                reply_markup=keyboard
+                reply_markup=keyboard,
+                protect_content=True 
             )
             return
         else:
@@ -158,7 +159,8 @@ async def handle_movie_code(message: Message, state: FSMContext):
         video=file_id,
         caption=caption,
         parse_mode="HTML",
-        reply_markup=keyboard
+        reply_markup=keyboard,
+        protect_content=True 
     )
 
     await state.clear()
