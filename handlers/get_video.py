@@ -33,6 +33,35 @@ async def process_get_video_callback(callback: CallbackQuery, state: FSMContext)
     await state.set_state(MovieStates.waiting_for_movie_code)
     await callback.answer()
 
+@video_router.callback_query(F.data == "check_subscription")
+async def handle_check_subscription(callback: CallbackQuery, bot: Bot ,state: FSMContext):
+    user_id = callback.from_user.id
+    is_subscribed = await check_subscription_status(bot, user_id)
+
+    username = callback.message.from_user.username or "No username"
+
+    if is_subscribed:
+        
+    # Agar startda kod bo'lmasa - oddiy menyu chiqar
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="🔎 Qidiruv", switch_inline_query_current_chat=""),
+                InlineKeyboardButton(text="Top 5 kinolar", callback_data="top_5_kinolar")],
+                [InlineKeyboardButton(text="📢 Barcha kinolar", url="https://t.me/kino_kodlar_t")]
+            ]
+        )
+        await callback.message.answer(
+            f"🎬 <b>MegaKinoBot</b> ga xush kelibsiz, <b>{username}</b>!\n\n"
+            "📽 Bu bot orqali filmlar olamiga sho‘ng‘ing — qidiruv, tavsiyalar, to‘liq ro‘yxatlar va yana ko‘plab imkoniyatlar sizni kutmoqda!\n\n"
+            "🧾 <i>Iltimos, kino kodini yuboring yoki quyidagi menyudan tanlang:</i>",
+            parse_mode="HTML",
+            reply_markup=keyboard
+        )
+
+        await state.set_state(MovieStates.waiting_for_movie_code)
+    else:
+        await callback.answer("❌ Siz hali ham obuna emassiz!", show_alert=True)
+
 @video_router.message(Command("start"))
 async def start_command(message: Message, state: FSMContext):
     bot = Bot(token=BOT_TOKEN)
