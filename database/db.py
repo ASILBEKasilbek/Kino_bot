@@ -142,6 +142,12 @@ def init_db():
     status TEXT NOT NULL DEFAULT 'pending'
 )
         ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS channels (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            channel_id TEXT UNIQUE NOT NULL
+        )
+    ''')
 
     conn.commit()
     conn.close()
