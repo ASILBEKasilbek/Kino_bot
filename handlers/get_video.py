@@ -10,7 +10,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-from database.models import get_top_movies
+from database.models import get_top_movies,get_all_channels
 
 import sqlite3
 import uuid
@@ -47,12 +47,27 @@ async def start_command(message: Message, state: FSMContext):
     conn.close()
     
     is_subscribed = await check_subscription_status(bot, user_id)
+
     if not is_subscribed:
-        channel_links = "\n".join([f"📢 <a href='https://t.me/{channel}'>Kanal</a>" for channel in CHANNEL_IDS])
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[])
+
+        for channel in get_all_channels():
+            button = InlineKeyboardButton(
+                text=f"📢 {channel} ",
+                url=f"https://t.me/{channel.lstrip('@')}"  # @ ni olib tashlab link qilish
+            )
+            keyboard.inline_keyboard.append([button])
+
+        check_button = InlineKeyboardButton(
+            text="✅ Obuna bo‘ldim",
+            callback_data="check_subscription"
+        )
+        keyboard.inline_keyboard.append([check_button])  # Tugmani qo‘shamiz
+
         await message.reply(
             f"👋 Xush kelibsiz, {username}!\n"
-            f"KinoBot Pro++ ga xush kelibsiz! Kino olish uchun quyidagi kanallarga obuna bo‘ling:\n{channel_links}",
-            parse_mode="HTML"
+            f"🎬 Kino olish uchun quyidagi kanallarga obuna bo‘ling:",
+            reply_markup=keyboard
         )
         return
     
@@ -254,7 +269,7 @@ async def inline_query_handler(inline_query: InlineQuery):
                         parse_mode="Markdown"
                     ),
                     reply_markup=btn,
-                    thumb_url="https://ibb.co/ymrn8HVG",
+                    thumb_url="https://i.ibb.co/2Y5Y8wvc/megakinobot.jpg"
                 )
             )
     else:
