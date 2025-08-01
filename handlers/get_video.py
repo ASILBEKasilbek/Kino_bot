@@ -207,7 +207,7 @@ async def handle_movie_code(message: Message, state: FSMContext):
         protect_content=True 
     )
 
-    await state.clear()
+    # await state.clear()
 
 @video_router.callback_query(lambda c: c.data == "top_5_kinolar")
 async def top_5_handler(callback: CallbackQuery):

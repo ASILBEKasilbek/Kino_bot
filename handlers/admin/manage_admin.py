@@ -14,9 +14,6 @@ class ManageAdminForm(StatesGroup):
 
 @admin_manage_router.message(Command("manage_admins"))
 async def manage_admins_command(message: Message):
-    if message.from_user.id not in ADMIN_IDS:
-        await message.reply("🚫 Bu buyruq faqat super adminlar uchun!")
-        return
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="➕ Admin qo‘shish", callback_data="add_admin"),
