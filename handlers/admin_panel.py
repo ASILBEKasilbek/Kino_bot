@@ -1,3 +1,4 @@
+from email.mime import message
 from aiogram import Router, F
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -169,6 +170,24 @@ async def process_movie_video(message: Message, state: FSMContext):
     # 🧩 Gamification XP
     gamification = Gamification()
     new_xp = gamification.add_xp(message.from_user.id, "add_movie")
+    a='Megakinouzrobot'
+    btn = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🎬 Tomosha qilish",
+                    url=f"https://t.me/{a}?start={movie_code}"
+                )
+            ]
+        ]
+    )
+    await message.bot.send_message(
+        chat_id=2721158496,
+        text=f"🎉 Yangi kino chiqdi!\n\n📌 Tomosha qilish uchun kod: <b>{movie_code}</b>\n\nKodni botga yuboring va tomosha qiling!",
+        parse_mode="HTML",
+        reply_markup=btn
+    )
+
 
     await message.reply(f"🎉 Kino kanalga yuklandi: {title}\n📊 Yangi XP: {new_xp}")
     await state.clear()
@@ -368,11 +387,9 @@ async def list_movies_callback(callback: CallbackQuery):
     
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    print(90)
     c.execute("SELECT movie_code, title FROM movies")
     movies = c.fetchall()
     conn.close()
-    print(59)
     
     if not movies:
         await callback.message.reply("📭 Kinolar topilmadi!")
