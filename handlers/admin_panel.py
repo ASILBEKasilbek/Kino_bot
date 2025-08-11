@@ -149,14 +149,12 @@ async def process_movie_video(message: Message, state: FSMContext):
     description = user_data["description"]
     is_premium = user_data["is_premium"]
 
-    # 🟢 Videoni kanalga yuborish
     sent_msg = await message.bot.send_video(
         chat_id=CHANNEL_ID,
         video=message.video.file_id,
         caption=f"{title} ({year})\n🎬 Janr: {genre}\n📝 {description}",
         supports_streaming=True
     )
-
     file_id = sent_msg.video.file_id  # Endi kanalga yuborilgan video file_id sini olamiz
 
     # 🔵 Bazaga yozish
@@ -171,6 +169,8 @@ async def process_movie_video(message: Message, state: FSMContext):
     gamification = Gamification()
     new_xp = gamification.add_xp(message.from_user.id, "add_movie")
     a='Megakinouzrobot'
+
+    from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
     btn = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -182,12 +182,20 @@ async def process_movie_video(message: Message, state: FSMContext):
         ]
     )
     await message.bot.send_message(
-        chat_id=2721158496,
-        text=f"🎉 Yangi kino chiqdi!\n\n📌 Tomosha qilish uchun kod: <b>{movie_code}</b>\n\nKodni botga yuboring va tomosha qiling!",
+        chat_id=-1002721158496,
+        text=(
+            f"🎉 <b>Yangi kino chiqdi!</b>\n\n"
+            f"🎬 <b>{title}</b>\n"
+            f"📅 <b>Yil:</b> {year}\n"
+            f"🎭 <b>Janr:</b> {genre}\n"
+            f"📝 <b>Tavsif:</b> {description}\n"
+            f"👁 <b>Ko‘rilgan:</b> 0 marta\n\n"
+            f"📌 <b>Kod:</b> <code>{movie_code}</code>\n\n"
+            f"➡ Tomosha qilish uchun kodni botga yuboring 👇"
+        ),
         parse_mode="HTML",
         reply_markup=btn
     )
-
 
     await message.reply(f"🎉 Kino kanalga yuklandi: {title}\n📊 Yangi XP: {new_xp}")
     await state.clear()
