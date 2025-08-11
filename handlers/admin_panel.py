@@ -368,7 +368,7 @@ async def list_movies_callback(callback: CallbackQuery):
     
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT movie_code, title, genre, year, is_premium FROM movies LIMIT 10")
+    c.execute("SELECT movie_code, title FROM movies LIMIT 10")
     movies = c.fetchall()
     conn.close()
     
