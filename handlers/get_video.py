@@ -47,7 +47,7 @@ async def handle_check_subscription(callback: CallbackQuery, bot: Bot ,state: FS
             inline_keyboard=[
                 [InlineKeyboardButton(text="🔎 Qidiruv", switch_inline_query_current_chat=""),
                 InlineKeyboardButton(text="Top 5 kinolar", callback_data="top_5_kinolar")],
-                [InlineKeyboardButton(text="📢 Barcha kinolar", url="https://t.me/kino_kodlar_t")]
+                [InlineKeyboardButton(text="📢 Barcha kinolar", callback_data="barcha_kinolar")]
             ]
         )
         await callback.message.answer(
@@ -269,7 +269,7 @@ async def inline_query_handler(inline_query: InlineQuery):
             description = movie[6]
             is_premium = movie[7]
             view_count = movie[8]
-            a='MegaKino_Uz_Bot'
+            a='Megakinouzrobot'
             a1 = "Healthy_Helper_robot"
             btn = InlineKeyboardMarkup(
                 inline_keyboard=[
@@ -330,7 +330,7 @@ async def show_all_movies(callback_query: CallbackQuery):
     buttons = []
     for title, code in movies:
         buttons.append(
-            [InlineKeyboardButton(text=title, url=f"https://t.me/MegaKino_Uz_Bot?start={code}")]
+            [InlineKeyboardButton(text=title, url=f"https://t.me/Megakinouzrobot?start={code}")]
         )
 
     markup = InlineKeyboardMarkup(inline_keyboard=buttons)
