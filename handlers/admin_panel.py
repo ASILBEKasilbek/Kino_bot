@@ -368,9 +368,11 @@ async def list_movies_callback(callback: CallbackQuery):
     
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT movie_code, title, FROM movies LIMIT 10")
+    print(90)
+    c.execute("SELECT movie_code, title FROM movies")
     movies = c.fetchall()
     conn.close()
+    print(59)
     
     if not movies:
         await callback.message.reply("📭 Kinolar topilmadi!")
@@ -379,7 +381,7 @@ async def list_movies_callback(callback: CallbackQuery):
     message_text = "🎬 Kinolar ro‘yxati:\n\n"
     for movie in movies:
         message_text += f"Kod: {movie[0]}\nNomi: {movie[1]}\n\n"
-        
+
     await callback.message.reply(message_text)
     try:
         await callback.message.delete()
