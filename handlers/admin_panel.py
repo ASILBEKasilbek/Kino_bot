@@ -49,14 +49,15 @@ async def admin_panel_command(message: Message):
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="➕ Kino qo‘shish", callback_data="add_movie"),
-         InlineKeyboardButton(text="🚫 Foydalanuvchi bloklash", callback_data="block_user")],
+        InlineKeyboardButton(text="➕ Serial qo‘shish", callback_data="add_series")],
+        [InlineKeyboardButton(text="📺 Kinolarni boshqarish", callback_data="manage_movies"),
+        InlineKeyboardButton(text="🎬 Seriallarni  boshqarish", callback_data="manage_series")],
         [InlineKeyboardButton(text="📊 Statistika", callback_data="stats"),
-         InlineKeyboardButton(text="🎛 Adminlarni boshqarish", callback_data="manage_admins")],
+        InlineKeyboardButton(text="🎛 Adminlarni boshqarish", callback_data="manage_admins")],
         [InlineKeyboardButton(text="📢 Kanallarni boshqarish", callback_data="manage_channels"),
-         InlineKeyboardButton(text="📣 Reklama yuborish", callback_data="send_ad")],
+        InlineKeyboardButton(text="📣 Reklama yuborish", callback_data="send_ad")],
         [InlineKeyboardButton(text="👥 Foydalanuvchilarni boshqarish", callback_data="manage_users"),
-         InlineKeyboardButton(text="🎬 Kinolarni boshqarish", callback_data="manage_movies")],
-        [InlineKeyboardButton(text="⏰ Reklama rejalashtirish", callback_data="schedule_broadcast")]
+         InlineKeyboardButton(text="⏰ Reklama rejalashtirish", callback_data="schedule_broadcast")],
     ])
     await message.reply("🎛 Admin paneli:", reply_markup=keyboard)
 
@@ -74,6 +75,24 @@ async def add_movie_callback(callback: CallbackQuery, state: FSMContext):
     except Exception as e:
         logging.warning(f"Failed to delete message: {e}")
 
+@admin_router.callback_query(F.data == "manage_series")
+async def manage_series(callback: CallbackQuery):
+    series_manage_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="➕ Serial qo‘shish", callback_data="add_series")],
+        [InlineKeyboardButton(text="📂 Mavsum qo‘shish", callback_data="add_season")],
+        [InlineKeyboardButton(text="🎞 Qism qo‘shish", callback_data="add_episode")],
+        [InlineKeyboardButton(text="✏️ Serialni tahrirlash", callback_data="edit_series")],
+        [InlineKeyboardButton(text="🗑 Serialni o‘chirish", callback_data="delete_series")],
+        [InlineKeyboardButton(text="🗑 Qismni o‘chirish", callback_data="delete_episode")],
+        [InlineKeyboardButton(text="⬅️ Orqaga", callback_data="admin_panel")]
+    ])
+    await callback.message.edit_text(
+        "📺 Seriallarni boshqarish bo‘limi:",
+        reply_markup=series_manage_keyboard
+    )
+    await callback.answer()
+
+    
 @admin_router.message(AddMovieForm.code)
 async def process_movie_code(message: Message, state: FSMContext):
     movie_code = message.text.strip().upper()

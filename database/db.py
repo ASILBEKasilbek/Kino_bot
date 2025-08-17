@@ -148,6 +148,41 @@ def init_db():
             channel_id TEXT UNIQUE NOT NULL
         )
     ''')
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS series (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT,                     -- Serial nomi
+        genre TEXT,                     -- Janr
+        year INTEGER,                   -- Yili
+        season_count INTEGER DEFAULT 1, -- Mavsumlar soni
+        description TEXT,               -- Tavsifi
+        is_premium INTEGER DEFAULT 0,   -- Premiummi yoki yo‘q
+        view_count INTEGER DEFAULT 0,   -- Umumiy ko‘rishlar
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS seasons (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        series_id INTEGER,              -- Qaysi serialga tegishli
+        season_number INTEGER,          -- Nechanchi mavsum
+        episode_count INTEGER DEFAULT 0,-- Shu mavsumdagi qismlar soni
+        FOREIGN KEY(series_id) REFERENCES series(id) ON DELETE CASCADE
+    );
+    """)
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS episodes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        season_id INTEGER,              -- Qaysi mavsumga tegishli
+        episode_number INTEGER,         -- Nechanchi qism
+        file_id TEXT,                   -- Telegram fayl ID (video uchun)
+        title TEXT,                     -- Qism nomi (masalan: "1-qism" yoki "Boshlanish")
+        description TEXT,               -- Qism haqida izoh
+        view_count INTEGER DEFAULT 0,   -- Qanchalik ko‘rilgan
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(season_id) REFERENCES seasons(id) ON DELETE CASCADE
+    );
+    """)
 
     conn.commit()
     conn.close()

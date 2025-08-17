@@ -18,6 +18,7 @@ from handlers.admin_panel import admin_router
 from handlers.admin.manage_admin import admin_manage_router
 from handlers.admin.manage_channel import channel_manage_router
 from handlers.admin.send_ads import ad_router
+from handlers.serial_add import serial_router
 from database.db import init_db
 from utils.logger import Logger
 from marketing.landing_page import landing_page_router
@@ -43,6 +44,7 @@ async def main():
     dp.include_router(channel_manage_router)
     dp.include_router(start_router)
     dp.include_router(video_router)
+    dp.include_router(serial_router)
     # dp.include_router(subscription_router)
     # dp.include_router(search_router)
     # dp.include_router(feedback_router)
@@ -64,7 +66,7 @@ async def main():
     print("Bot ishga tushdi")
     
     try:
-        await dp.start_polling(bot)
+        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
     except Exception as e:
         logger.error(f"Botda xatolik: {e}")
     finally:
