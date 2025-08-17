@@ -69,7 +69,7 @@ async def add_movie_callback(callback: CallbackQuery, state: FSMContext):
         await callback.message.reply("🚫 Faqat adminlar kino qo‘shishi mumkin!")
         return
     await state.set_state(AddMovieForm.code)
-    from database.db import get_last_movie_code
+    from database.models import get_last_movie_code
     await callback.message.reply(f"🎬 Kino kodi kiriting, ohirgi kino kodi {get_last_movie_code()} (masalan, KINO987):")
     try:
         await callback.message.delete()
