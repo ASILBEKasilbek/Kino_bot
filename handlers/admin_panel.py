@@ -69,7 +69,8 @@ async def add_movie_callback(callback: CallbackQuery, state: FSMContext):
         await callback.message.reply("🚫 Faqat adminlar kino qo‘shishi mumkin!")
         return
     await state.set_state(AddMovieForm.code)
-    await callback.message.reply("🎬 Kino kodi kiriting (masalan, KINO987):")
+    from database.db import get_last_movie_code
+    await callback.message.reply(f"🎬 Kino kodi kiriting, ohirgi kino kodi {get_last_movie_code()} (masalan, KINO987):")
     try:
         await callback.message.delete()
     except Exception as e:
@@ -92,7 +93,7 @@ async def manage_series(callback: CallbackQuery):
     )
     await callback.answer()
 
-    
+
 @admin_router.message(AddMovieForm.code)
 async def process_movie_code(message: Message, state: FSMContext):
     movie_code = message.text.strip().upper()
@@ -216,7 +217,7 @@ async def process_movie_video(message: Message, state: FSMContext):
         reply_markup=btn
     )
 
-    await message.reply(f"🎉 Kino kanalga yuklandi: {title}\n📊 Yangi XP: {new_xp}")
+    await message.reply(f"🎉 Kino kanalga yuklandi: {title}\n📊 Yangi XP: {new_xp} \n Bosing : /admin")
     await state.clear()
 
 @admin_router.callback_query(F.data == "block_user")

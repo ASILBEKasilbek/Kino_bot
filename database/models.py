@@ -155,3 +155,11 @@ def delete_episode(episode_id):
     c.execute("DELETE FROM episodes WHERE id = ?", (episode_id,))
     conn.commit()
     conn.close()
+
+def get_last_movie_code():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT movie_code FROM movies ORDER BY id DESC LIMIT 1")
+    last_movie = c.fetchone()
+    conn.close()
+    return last_movie[0] if last_movie else None
